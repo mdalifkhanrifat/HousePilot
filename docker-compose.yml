@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: housepilot_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    networks:
+      - housepilot_network
+    depends_on:
+      - mysql
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_KEY=${APP_KEY}
+      - VITE_DEV_SERVER_URL=http://localhost:5173
+    ports:
+      - "5173:5173" # Vite Dev Server এর জন্য
+
+  mysql:
+    image: mysql:8.0
+    container_name: housepilot_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: housepilot
+      MYSQL_USER: housepilot_user
+      MYSQL_PASSWORD: housepilot_pass
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - housepilot_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: housepilot_nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - housepilot_network
+    depends_on:
+      - app
+
+networks:
+  housepilot_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  #housepilot_app_data:
+

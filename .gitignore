@@ -1,0 +1,34 @@
+# Laravel & General Ignored Files
+/.phpunit.cache
+/.phpunit.result.cache
+/.phpactor.json
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+auth.json
+
+# Laravel Folders
+/vendor
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage
+/storage/*.key
+/storage/pail
+/bootstrap/cache
+
+# Configuration Files
+.env
+.env.backup
+.env.production
+
+# IDE & Editor Specific Files
+/.idea
+/.vscode
+/.fleet
+/.zed
+/.nova
+.DS_Store
+
