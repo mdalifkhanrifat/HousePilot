@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -88,7 +89,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        dd($request);
+        // dd($request);
         try {
             $user = $request->user();
             
@@ -106,6 +107,8 @@ class AuthController extends Controller
         }
     }
 
-
-
+    public function user(Request $request)
+    {
+        return response()->json($request->user());
+    }
 }
