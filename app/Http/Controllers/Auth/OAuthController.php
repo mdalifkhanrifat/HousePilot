@@ -21,35 +21,24 @@ class OAuthController extends Controller
     // Google OAuth Callback
     public function handleGoogleCallback()
     {
+        session()->start(); // ✅ Ensure session starts
+
         try {
             $googleUser = Socialite::driver('google')->user();
+            $user = User::updateOrCreate([
+                'email' => $googleUser->getEmail(),
+            ], [
+                'name' => $googleUser->getName(),
+                'google_id' => $googleUser->getId(),
+                'avatar' => $googleUser->getAvatar(),
+            ]);
 
-            // Check if user exists
-            $user = User::where('email', $googleUser->getEmail())->first();
-
-            if (!$user) {
-                // Create new user
-                $user = User::create([
-                    'name' => $googleUser->getName(),
-                    'email' => $googleUser->getEmail(),
-                    'google_id' => $googleUser->getId(),
-                    'password' => bcrypt(Str::random(16)), // Random password
-                ]);
-            }
-
-            // Login the user
             Auth::login($user);
 
-            return response()->json([
-                'message' => 'Login successful',
-                'user' => $user,
-                'token' => $user->createToken('authToken')->plainTextToken
-            ]);
+            return redirect('/'); // ✅ Redirect after login
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Something went wrong!',
-                'message' => $e->getMessage(),
-            ], 500);
+            return redirect('/login')->with('error', 'Something went wrong!');
         }
     }
+
 }

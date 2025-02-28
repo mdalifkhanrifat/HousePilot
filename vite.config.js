@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
+import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
     server: {
-        host: '0.0.0.0',  // এটি Docker কন্টেইনারের জন্য দরকার
+        host: '0.0.0.0',  // Need for Docker Container
         port: 5173,
         strictPort: true,
         hmr: {
@@ -15,5 +16,12 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
         }),
+        vue(),
     ],
+    resolve: {
+        alias: {
+            'vue': 'vue/dist/vue.esm-bundler.js', 
+            '@': '/resources/js',  
+        },
+    },
 });
