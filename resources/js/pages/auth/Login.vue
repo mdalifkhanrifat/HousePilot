@@ -1,30 +1,40 @@
 <template>
-    <div>
+    <div class="login-container">
         <h2>Login</h2>
-        <form @submit.prevent="login">
+        <form @submit.prevent="handleLogin">
             <input v-model="email" type="email" placeholder="Email" required />
             <input v-model="password" type="password" placeholder="Password" required />
             <button type="submit">Login</button>
         </form>
-        <p v-if="message">{{ message }}</p>
+        <p v-if="errorMessage">{{ errorMessage }}</p>
     </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import axios from 'axios';
+import { useAuthStore } from '@/stores/auth';
+const authStore = useAuthStore();
 
 const email = ref('');
 const password = ref('');
-const message = ref('');
+const errorMessage = ref('');
 
-const login = async () => {
+const handleLogin = async () => {
     try {
-        let response = await axios.post('/api/login', { email: email.value, password: password.value });
-        localStorage.setItem('token', response.data.token);
-        message.value = 'Login successful!';
+        await authStore.login(email.value, password.value);
     } catch (error) {
-        message.value = 'Invalid credentials';
+        errorMessage.value = 'Invalid credentials';
     }
 };
 </script>
+
+<style scoped>
+.login-container {
+    max-width: 400px;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: #f9f9f9;
+}
+</style>

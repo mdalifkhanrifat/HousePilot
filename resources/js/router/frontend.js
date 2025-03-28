@@ -4,7 +4,7 @@ import Home from '@/pages/frontend/Home.vue';
 
 const frontendRoutes = [
     {
-        path: '/',
+        path: '/home',
         component: FrontendLayout,
         children: [
             { path: '', name: 'home', component: Home }
