@@ -1,0 +1,110 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: housepilot_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+      - ./app/secrets:/var/www/app/secrets
+    environment:
+      DB_HOST: db
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - db
+      - redis
+    networks:
+      - housepilot_net
+
+  frontend:
+    build:
+      context: ./frontend/housepilot-app
+      dockerfile: Dockerfile
+    container_name: housepilot_frontend
+    ports:
+      - "5174:5173"
+    volumes:
+      - ./frontend/housepilot-app:/app
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+    command: ["npm", "run", "dev"]
+    networks:
+      - housepilot_net
+    depends_on:
+      - app
+
+  nginx:
+    image: nginx:alpine
+    container_name: housepilot_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+      - "4443:443"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - .:/var/www
+      - ./frontend/housepilot-app/dist:/var/www/frontend
+    depends_on:
+      - app
+      - frontend
+    networks:
+      - housepilot_net
+
+  db:
+    image: mysql:8.0
+    container_name: housepilot_db
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - housepilot_db_data:/var/lib/mysql
+    networks:
+      - housepilot_net
+
+  redis:
+    image: redis:alpine
+    container_name: housepilot_redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    networks:
+      - housepilot_net
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: housepilot_mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+    networks:
+      - housepilot_net
+
+  adminer:
+    image: adminer
+    container_name: housepilot_adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db
+    networks:
+      - housepilot_net
+
+networks:
+  housepilot_net:
+    driver: bridge
+
+volumes:
+  housepilot_db_data:
