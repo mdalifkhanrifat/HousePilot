@@ -19,6 +19,9 @@ class AuthController extends Controller
         $this->authService = $authService;
     }
 
+    /**
+     * Handle user login.
+     */
     public function login(LoginRequest $request)
     {
         $result = $this->authService->login($request->validated());
@@ -30,14 +33,19 @@ class AuthController extends Controller
         return response()->json($result);
     }
 
+    /**
+     * Handle new user registration.
+     */
     public function register(RegisterRequest $request)
     {
         $result = $this->authService->register($request->validated());
-        // dd($result);
 
         return response()->json($result, 201);
     }
 
+    /**
+     * Handle user logout (token revocation).
+     */
     public function logout(Request $request)
     {
         $this->authService->logout($request->user());
@@ -45,9 +53,15 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out successfully']);
     }
 
+    // -----------------------------------------------------------------------
+    // Forgot Password via Token (Standard Laravel Reset)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Send reset link + OTP to email using Laravel's Password::createToken
+     */
     public function forgotPassword(Request $request)
     {
-        // dd($request);
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
         ]);
@@ -61,11 +75,14 @@ class AuthController extends Controller
 
         $status = $this->authService->sendPasswordResetLink($request->only('email'));
 
-        // dd($status);
-
-        return $status === Password::RESET_LINK_SENT ? response()->json(['message' => 'Reset link sent to your email.']) : response()->json(['message' => 'Unable to send reset link.'], 500);
+        return $status === Password::RESET_LINK_SENT
+            ? response()->json(['message' => 'Reset link sent to your email.'])
+            : response()->json(['message' => 'Unable to send reset link.'], 500);
     }
 
+    /**
+     * Reset password using token (link method)
+     */
     public function resetPassword(Request $request)
     {
         $request->validate([
@@ -78,8 +95,105 @@ class AuthController extends Controller
             'email', 'password', 'password_confirmation', 'token'
         ));
 
-        return $status === Password::PASSWORD_RESET
-            ? response()->json(['message' => 'Password reset successfully.'])
-            : response()->json(['message' => 'Password reset failed.'], 500);
+        if ($status == Password::PASSWORD_RESET) {
+            return response()->json(['message' => 'Password reset successfully.']);
+        }
+
+        // dd($status);
+
+        return response()->json(['message' => __($status['message'])], 500);
+    }
+
+
+    // -----------------------------------------------------------------------
+    // OTP-Based Password Reset
+    // -----------------------------------------------------------------------
+
+    /**
+     * Send OTP to user email for password reset
+     */
+    public function sendOtp(Request $request)
+    {
+        $request->validate(['email' => 'required|email|exists:users,email']);
+        return $this->authService->sendOtp($request->only('email'));
+    }
+
+    /**
+     * Verify OTP sent to user email
+     */
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp'   => 'required|digits:6',
+        ]);
+        return $this->authService->verifyOtp($request->only('email', 'otp'));
+    }
+
+    /**
+     * Reset password using OTP (verified manually)
+     */
+    public function resetPasswordViaOtp(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'otp'      => 'required|digits:6',
+            'password' => 'required|confirmed|min:8',
+        ]);
+
+        $result = $this->authService->verifyOtpAndResetPassword(
+            $request->only('email', 'otp', 'password')
+        );
+
+        if (!$result['success']) {
+            return response()->json(['message' => $result['message']], 400);
+        }
+
+        return response()->json(['message' => $result['message']]);
+    }
+
+    // -----------------------------------------------------------------------
+    //  Hybrid Endpoint (either OTP or Token-based reset in one)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Alternative combined endpoint to reset password via OTP or Token.
+     */
+    public function resetPasswordWithOtp(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'otp'      => 'sometimes|required_without:token|digits:6',
+            'token'    => 'sometimes|required_without:otp|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $result = $this->authService->resetPassword($request->only(
+            'email', 'otp', 'token', 'password'
+        ));
+
+        if (!$result['success']) {
+            return response()->json(['message' => $result['message']], 400);
+        }
+
+        return response()->json(['message' => $result['message']]);
+    }
+
+    /**
+     * Alternative entry point to send both OTP and reset link.
+     */
+    public function sendPasswordResetLink(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $result = $this->authService->sendPasswordResetLink($request->only('email'));
+
+        if (!$result['success']) {
+            return response()->json(['message' => $result['message']], 400);
+        }
+
+        return response()->json(['message' => $result['message']]);
     }
 }

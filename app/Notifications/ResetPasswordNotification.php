@@ -3,29 +3,27 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-
-use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class ResetPasswordNotification extends Notification
 {
-    // use Queueable;
-    public $token;
+    use Queueable;
+
+    protected $token;
+    protected $otp;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($token)
+    public function __construct($token, $otp)
     {
         $this->token = $token;
+        $this->otp = $otp;
     }
 
     /**
      * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
      */
     public function via(object $notifiable): array
     {
@@ -37,29 +35,29 @@ class ResetPasswordNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
+        // $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+        // $resetUrl = "{$frontendUrl}/reset-password?token={$this->token}&email={$notifiable->email}";
         // return (new MailMessage)
-        //     ->line('The introduction to the notification.')
-        //     ->action('Notification Action', url('/'))
-        //     ->line('Thank you for using our application!');
-
-        $frontendUrl = config('app.frontend_url_dev') ?? 'http://localhost:5173'; // Vue frontend base URL
+        //     ->subject('Reset Your HousePilot Password')
+        //     ->line('We received a request to reset your password.')
+        //     ->line("🔐 **Your OTP is: {$this->otp}** (valid for 10 minutes)")
+        //     ->action('Reset Password via Link', $resetUrl)
+        //     ->line('You can reset your password using either the OTP or the link above.')
+        //     ->line('If you did not request this, you can safely ignore this email.');
 
         return (new MailMessage)
-            ->subject('Reset your password')
-            ->line('Click the button below to reset your password.')
-            ->action('Reset Password', "{$frontendUrl}/reset-password?token={$this->token}&email={$notifiable->getEmailForPasswordReset()}")
-            ->line('If you did not request a password reset, no further action is required.');
+            ->subject('Reset Password Request')
+            ->line("Your OTP is: {$this->otp}")
+            ->line("Or you can reset your password using the following link:")
+            ->action('Reset Password', url(config('app.frontend_url') . '/reset-password?token=' . $this->token))
+            ->line('This OTP will expire in 10 minutes.');
     }
 
     /**
      * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 }
