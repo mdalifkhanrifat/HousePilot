@@ -5,8 +5,9 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class ResetPasswordNotification extends Notification
+class ResetPasswordNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -36,14 +37,6 @@ class ResetPasswordNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         // $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
-        // $resetUrl = "{$frontendUrl}/reset-password?token={$this->token}&email={$notifiable->email}";
-        // return (new MailMessage)
-        //     ->subject('Reset Your HousePilot Password')
-        //     ->line('We received a request to reset your password.')
-        //     ->line("🔐 **Your OTP is: {$this->otp}** (valid for 10 minutes)")
-        //     ->action('Reset Password via Link', $resetUrl)
-        //     ->line('You can reset your password using either the OTP or the link above.')
-        //     ->line('If you did not request this, you can safely ignore this email.');
 
         return (new MailMessage)
             ->subject('Reset Password Request')

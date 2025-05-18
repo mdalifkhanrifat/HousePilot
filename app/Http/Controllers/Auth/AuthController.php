@@ -95,13 +95,12 @@ class AuthController extends Controller
             'email', 'password', 'password_confirmation', 'token'
         ));
 
-        if ($status == Password::PASSWORD_RESET) {
-            return response()->json(['message' => 'Password reset successfully.']);
+
+        if (!$status['success']) {
+            return response()->json(['message' => $status['message']], 400);
         }
 
-        // dd($status);
-
-        return response()->json(['message' => __($status['message'])], 500);
+        return response()->json(['message' => $status['message']]);
     }
 
 
@@ -168,9 +167,17 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $result = $this->authService->resetPassword($request->only(
-            'email', 'otp', 'token', 'password'
-        ));
+        $result = $this->authService->resetPassword([
+            'email' => $request->input('email'),
+            'otp' => $request->input('otp'),
+            'token' => $request->input('token'),
+            'password' => $request->input('password'),
+            'password_confirmation' => $request->input('password_confirmation'), 
+        ]);
+
+        // $result = $this->authService->resetPassword($request->only(
+        //     'email', 'otp', 'token', 'password'
+        // ));
 
         if (!$result['success']) {
             return response()->json(['message' => $result['message']], 400);
