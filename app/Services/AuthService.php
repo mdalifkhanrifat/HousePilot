@@ -138,7 +138,7 @@ class AuthService implements AuthServiceInterface
 
         $userRecord->notify(new ResetPasswordNotification($token, $otp));
 
-        return ['success' => true, 'message' => 'Reset password instructions sent.'];
+        return ['success' => true, 'message' => 'Reset link sent to your email.'];
     }
 
     /**

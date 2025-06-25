@@ -7,7 +7,7 @@ import NotFoundLayout from '@/views/common/NotFound.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const isAuthenticated = () => {
-  return !!localStorage.getItem('access_token') // ✅ ঠিক করা হলো
+  return !!localStorage.getItem('access_token') 
 }
 
 const routes = [
@@ -15,7 +15,7 @@ const routes = [
   authRoutes,
   {
     ...backendRoutes,
-    meta: { requiresAuth: true }, // ✅ meta যোগ করা হলো
+    meta: { requiresAuth: true },
   },
   {
     path: '/:pathMatch(.*)*',
@@ -28,7 +28,7 @@ const router = createRouter({
   routes
 })
 
-// ✅ গ্লোবাল রাউট গার্ড
+// global navigation guard
 router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
   const token = localStorage.getItem('access_token')

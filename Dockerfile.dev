@@ -1,4 +1,4 @@
-FROM php:8.2-fpm
+FROM php:8.3-fpm
 
 # Install System Dependencies
 RUN apt-get update && apt-get install -y \
@@ -24,3 +24,12 @@ COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 COPY ./docker/php/local.ini /usr/local/etc/php/conf.d/local.ini
 
 WORKDIR /var/www
+
+# ENTRYPOINT script
+COPY ./docker/start.sh /start.sh
+RUN chmod +x /start.sh
+
+ENTRYPOINT ["/start.sh"]
+
+
+

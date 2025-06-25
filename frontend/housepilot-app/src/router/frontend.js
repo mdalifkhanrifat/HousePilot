@@ -1,6 +1,5 @@
 // src/router/frontend.js
-
-import FrontendLayout from '@/views/layouts/FrontendLayout.vue'
+import FrontendLayout from '@/views/frontend/layouts/FrontendLayout.vue'
 import Home from '@/views/frontend/Home.vue'
 // import About from '@/views/frontend/About.vue'
 

@@ -1,8 +1,7 @@
 import Login from '@/views/frontend/auth/Login.vue'
 import Register from '@/views/frontend/auth/Register.vue'
 import ForgotPassword from '@/views/frontend/auth/ForgotPassword.vue'
-import FrontendLayout from '@/views/layouts/FrontendLayout.vue'
-
+import FrontendLayout from '@/views/frontend/layouts/FrontendLayout.vue'
 
 export default {
   path: '/',

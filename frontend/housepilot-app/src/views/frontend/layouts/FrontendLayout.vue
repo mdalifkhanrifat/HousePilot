@@ -10,8 +10,8 @@
 </template>
 
 <script setup>
-import Header from '../frontend/components/Header.vue'
-import FooterSection from '../frontend/components/FooterSection.vue'
+import Header from '../components/Header.vue'
+import FooterSection from '../components/FooterSection.vue'
 import { useSettingsStore } from '@/stores/settings'
 
 const $settings = useSettingsStore()
