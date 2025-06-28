@@ -1,13 +1,11 @@
 <template>
-  <footer class="bg-white border-t border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
-    <div class="p-4 text-center">
-      <p class="text-sm text-gray-500 dark:text-neutral-400">© 2023 Your Company. All rights reserved.</p>
-    </div>
+  <footer class="text-center text-sm p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+    <p class="text-gray-600 dark:text-gray-400">
+      © {{ new Date().getFullYear() }} HousePilot. All rights reserved.
+    </p>
   </footer>
 </template>
 
-<script>
-export default {
-  name: 'Footer'
-}
+<script setup>
+// Nothing needed here for now
 </script>

@@ -5,7 +5,7 @@
       House <span class="text-green-500">Pilot</span>
     </h2>
     <p class="mb-6 text-gray-600 dark:text-gray-300">
-      The Precision Pilot Of Your Home
+      The Precision Pilot Of Your Home..
     </p>
     <button class="bg-green-500 text-white px-6 py-2 rounded shadow">Register</button>
   </section>

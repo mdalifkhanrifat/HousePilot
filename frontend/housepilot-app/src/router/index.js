@@ -6,9 +6,9 @@ import authRoutes from './auth'
 import NotFoundLayout from '@/views/common/NotFound.vue'
 import { useAuthStore } from '@/stores/auth'
 
-const isAuthenticated = () => {
-  return !!localStorage.getItem('access_token') 
-}
+// const isAuthenticated = () => {
+//   return !!localStorage.getItem('access_token')
+// }
 
 const routes = [
   frontendRoutes,
