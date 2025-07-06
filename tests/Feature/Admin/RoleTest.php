@@ -1,9 +1,8 @@
 <?php
 
-namespace Tests\Feature\Feature\Admin;
+namespace Tests\Feature\Admin;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Role;
@@ -14,12 +13,14 @@ class RoleTest extends TestCase
 
     public function test_admin_can_create_role()
     {
+        // Arrange
         $user = User::factory()->create();
+        $payload = ['name' => 'Manager', 'slug' => 'manager'];
 
-        $payload = ['name' => 'Manager'];
-
+        // Act
         $response = $this->actingAs($user, 'api')->postJson('/api/admin/roles', $payload);
 
+        // Assert
         $response->assertStatus(201)
                  ->assertJsonFragment(['name' => 'Manager']);
 
@@ -28,23 +29,36 @@ class RoleTest extends TestCase
 
     public function test_admin_can_get_roles()
     {
+        // Arrange
         Role::factory()->count(3)->create();
         $user = User::factory()->create();
 
+        // Act
         $response = $this->actingAs($user, 'api')->getJson('/api/admin/roles');
 
-        $response->assertOk()->assertJsonStructure([['id', 'name']]);
+        // Assert
+        $response->assertOk()
+                ->assertJsonStructure([
+                    'success',
+                    'message',
+                    'data' => [
+                        '*' => ['id', 'name']
+                    ]
+                ]);
     }
 
     public function test_admin_can_update_role()
     {
+        // Arrange
         $user = User::factory()->create();
         $role = Role::factory()->create(['name' => 'Old Name']);
 
-        $response = $this->actingAs($user, 'api')->putJson("/api/admin/roles/{$role->id}", [
-            'name' => 'Updated Name',
-        ]);
+        $payload = ['name' => 'Updated Name', 'slug' => 'updated-name'];
 
+        // Act
+        $response = $this->actingAs($user, 'api')->putJson("/api/admin/roles/{$role->id}", $payload);
+
+        // Assert
         $response->assertOk()
                  ->assertJsonFragment(['name' => 'Updated Name']);
 
@@ -53,12 +67,16 @@ class RoleTest extends TestCase
 
     public function test_admin_can_delete_role()
     {
+        // Arrange
         $user = User::factory()->create();
         $role = Role::factory()->create();
 
+        // Act
         $response = $this->actingAs($user, 'api')->deleteJson("/api/admin/roles/{$role->id}");
 
-        $response->assertOk()->assertJson(['message' => 'Role deleted successfully.']);
+        // Assert
+        $response->assertOk()
+                 ->assertJson(['message' => 'Role deleted successfully']);
 
         $this->assertDatabaseMissing('roles', ['id' => $role->id]);
     }

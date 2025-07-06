@@ -15,8 +15,23 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('role_id')->constrained()->onDelete('cascade');
+            $table->timestamp('assigned_at')->useCurrent(); // When role was assigned
+            $table->foreignId('assigned_by')->nullable()->constrained('users')->onDelete('set null'); // Who assigned
+            $table->timestamp('expires_at')->nullable(); // Role expiry (optional)
+            $table->boolean('is_active')->default(true); // Can temporarily disable role
             $table->timestamps();
+
+            // Unique constraint
+            $table->unique(['user_id', 'role_id']);
+
+            // Indexes for performance
+            $table->index('user_id');
+            $table->index('role_id');
+            $table->index('assigned_by');
+            $table->index(['user_id', 'is_active']);
+            $table->index('expires_at');
         });
+
     }
 
     /**

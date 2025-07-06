@@ -2,14 +2,14 @@
 
 namespace App\Services;
 
-use App\Repositories\Interfaces\UserRepositoryInterface;
 use App\Services\Interfaces\AuthServiceInterface;
+use App\Repositories\Interfaces\UserRepositoryInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 use App\Notifications\ResetPasswordNotification;
@@ -19,6 +19,9 @@ class AuthService implements AuthServiceInterface
 {
     protected $userRepo;
 
+    /**
+     * Constructor to inject UserRepositoryInterface.
+     */
     public function __construct(UserRepositoryInterface $userRepo)
     {
         $this->userRepo = $userRepo;
@@ -26,6 +29,9 @@ class AuthService implements AuthServiceInterface
 
     /**
      * Handle user login.
+     *
+     * @param array $credentials
+     * @return array|bool
      */
     public function login(array $credentials)
     {
@@ -36,11 +42,17 @@ class AuthService implements AuthServiceInterface
         $user = $this->userRepo->findByEmail($credentials['email']);
         $token = $user->createToken('AccessToken')->accessToken;
 
-        return ['user' => $user, 'token' => $token];
+        return [
+            'user' => $user,
+            'token' => $token
+        ];
     }
 
     /**
      * Register a new user.
+     *
+     * @param array $data
+     * @return array
      */
     public function register(array $data)
     {
@@ -48,11 +60,17 @@ class AuthService implements AuthServiceInterface
         $user = $this->userRepo->create($data);
         $token = $user->createToken('AccessToken')->accessToken;
 
-        return ['user' => $user, 'token' => $token];
+        return [
+            'user' => $user,
+            'token' => $token
+        ];
     }
 
     /**
      * Logout the authenticated user.
+     *
+     * @param mixed $user
+     * @return bool
      */
     public function logout($user)
     {
@@ -62,6 +80,9 @@ class AuthService implements AuthServiceInterface
 
     /**
      * Send OTP to user's email for password reset.
+     *
+     * @param array $data
+     * @return \Illuminate\Http\JsonResponse
      */
     public function sendOtp(array $data)
     {
@@ -74,13 +95,16 @@ class AuthService implements AuthServiceInterface
         );
 
         $user = $this->userRepo->findByEmail($data['email']);
-        $user->notify(new ResetPasswordNotification(null, $otp)); // null token, only OTP
+        $user->notify(new ResetPasswordNotification(null, $otp)); // Only OTP sent
 
         return response()->json(['message' => 'OTP sent successfully.'], 200);
     }
 
     /**
      * Verify the OTP submitted by the user.
+     *
+     * @param array $data
+     * @return \Illuminate\Http\JsonResponse
      */
     public function verifyOtp(array $data)
     {
@@ -96,7 +120,10 @@ class AuthService implements AuthServiceInterface
     }
 
     /**
-     * Reset password via OTP verification.
+     * Reset password after verifying OTP.
+     *
+     * @param array $data
+     * @return array
      */
     public function verifyOtpAndResetPassword(array $data)
     {
@@ -105,7 +132,10 @@ class AuthService implements AuthServiceInterface
             ->first();
 
         if (!$otpRecord || Carbon::now()->greaterThan($otpRecord->expires_at)) {
-            return ['success' => false, 'message' => 'Invalid or expired OTP'];
+            return [
+                'success' => false,
+                'message' => 'Invalid or expired OTP'
+            ];
         }
 
         $user = $this->userRepo->findByEmail($data['email']);
@@ -114,12 +144,17 @@ class AuthService implements AuthServiceInterface
 
         $otpRecord->delete();
 
-        return ['success' => true, 'message' => 'Password has been reset successfully'];
+        return [
+            'success' => true,
+            'message' => 'Password has been reset successfully'
+        ];
     }
 
     /**
-     * Send both password reset token and OTP via notification.
-     * Token is used for Laravel's built-in password reset, and OTP is for manual validation.
+     * Send password reset token + OTP to user email.
+     *
+     * @param array $user
+     * @return array
      */
     public function sendPasswordResetLink(array $user)
     {
@@ -129,8 +164,8 @@ class AuthService implements AuthServiceInterface
         }
 
         $token = Password::createToken($userRecord);
-
         $otp = rand(100000, 999999);
+
         PasswordOtp::updateOrCreate(
             ['email' => $user['email']],
             ['otp' => $otp, 'expires_at' => now()->addMinutes(10)]
@@ -138,17 +173,21 @@ class AuthService implements AuthServiceInterface
 
         $userRecord->notify(new ResetPasswordNotification($token, $otp));
 
-        return ['success' => true, 'message' => 'Reset link sent to your email.'];
+        return [
+            'success' => true,
+            'message' => 'Reset link sent to your email.'
+        ];
     }
 
     /**
-     * Reset password either via OTP or via token.
-     * Best Practice:
-     * - Token handled using Laravel's Password Broker.
-     * - OTP handled manually from password_otps table.
+     * Reset password using either OTP or token.
+     *
+     * @param array $data
+     * @return array
      */
     public function resetPassword(array $data)
     {
+        // OTP-based reset
         if (isset($data['otp'])) {
             $otpRecord = PasswordOtp::where('email', $data['email'])
                 ->where('otp', $data['otp'])
@@ -171,6 +210,7 @@ class AuthService implements AuthServiceInterface
             return ['success' => true, 'message' => 'Password reset via OTP successfully.'];
         }
 
+        // Token-based reset
         if (isset($data['token'])) {
             $status = Password::reset(
                 $data,
@@ -183,13 +223,11 @@ class AuthService implements AuthServiceInterface
 
             if ($status === Password::PASSWORD_RESET) {
                 return ['success' => true, 'message' => 'Password reset via token successfully.'];
-            } else {
-                return ['success' => false, 'message' => __($status)];
             }
+
+            return ['success' => false, 'message' => __($status)];
         }
 
         return ['success' => false, 'message' => 'OTP or token is required.'];
     }
-
-
 }

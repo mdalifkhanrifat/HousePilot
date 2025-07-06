@@ -8,11 +8,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use App\Notifications\ResetPasswordNotification;
+use App\Traits\HasPermissions;
+
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable,HasPermissions;
 
     /**
      * The attributes that are mass assignable.
@@ -57,6 +59,7 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class);
     }
+
 
 
 }

@@ -1,9 +1,8 @@
 <?php
 
-namespace Tests\Feature\Feature\Admin;
+namespace Tests\Feature\Admin;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Permission;
@@ -14,12 +13,14 @@ class PermissionTest extends TestCase
 
     public function test_admin_can_create_permission()
     {
+        // Arrange
         $user = User::factory()->create();
+        $payload = ['name' => 'edit_users', 'slug' => 'edit-users'];
 
-        $payload = ['name' => 'edit_users'];
-
+        // Act
         $response = $this->actingAs($user, 'api')->postJson('/api/admin/permissions', $payload);
 
+        // Assert
         $response->assertStatus(201)
                  ->assertJsonFragment(['name' => 'edit_users']);
 
@@ -28,23 +29,30 @@ class PermissionTest extends TestCase
 
     public function test_admin_can_get_permissions()
     {
+        // Arrange
         Permission::factory()->count(2)->create();
         $user = User::factory()->create();
 
+        // Act
         $response = $this->actingAs($user, 'api')->getJson('/api/admin/permissions');
 
-        $response->assertOk()->assertJsonStructure([['id', 'name']]);
+        // Assert
+        $response->assertOk()
+                 ->assertJsonStructure([['id', 'name']]);
     }
 
     public function test_admin_can_update_permission()
     {
+        // Arrange
         $user = User::factory()->create();
         $permission = Permission::factory()->create(['name' => 'view_user']);
 
-        $response = $this->actingAs($user, 'api')->putJson("/api/admin/permissions/{$permission->id}", [
-            'name' => 'manage_user',
-        ]);
+        $payload = ['name' => 'manage_user', 'slug' => 'manage-user'];
 
+        // Act
+        $response = $this->actingAs($user, 'api')->putJson("/api/admin/permissions/{$permission->id}", $payload);
+
+        // Assert
         $response->assertOk()
                  ->assertJsonFragment(['name' => 'manage_user']);
 
@@ -53,12 +61,16 @@ class PermissionTest extends TestCase
 
     public function test_admin_can_delete_permission()
     {
+        // Arrange
         $user = User::factory()->create();
         $permission = Permission::factory()->create();
 
+        // Act
         $response = $this->actingAs($user, 'api')->deleteJson("/api/admin/permissions/{$permission->id}");
 
-        $response->assertOk()->assertJson(['message' => 'Permission deleted successfully.']);
+        // Assert
+        $response->assertOk()
+                 ->assertJson(['message' => 'Permission deleted successfully.']);
 
         $this->assertDatabaseMissing('permissions', ['id' => $permission->id]);
     }
